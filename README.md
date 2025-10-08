@@ -11,7 +11,7 @@ Use the `get-ovo.sh` script to grab raw half-hourly usage data in JSON format be
 This will output one JSON file per day between `START` and `END`.
 
 To use:
-* Edit `get-ovo.sh`, adjusting the values of `START`, `END`, `ACCOUNT`, `USERNAME` and `PASSWORD` appropriately.
+* Copy `config.env.template` to `config.env`, adjusting the values of `START`, `END`, `ACCOUNT`, `USERNAME` and `PASSWORD` appropriately.
 * Run `bash get-ovo.sh`
 
 

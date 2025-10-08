@@ -1,14 +1,5 @@
 #bin/bash
 
-# ISO 8601 dates
-START="2021-08-31"
-END="2024-12-31"
-
-# Customer account, username and password
-ACCOUNT="12345678" # Your account number - find this in your Ovo account information
-USERNAME="username"
-PASSWORD="password"
-
 # Iterate through a list of potential date commands and use the first one found
 DATE_CANDIDATES=("gdate" "date")
 for cmd in "${DATE_CANDIDATES[@]}"; do
@@ -32,6 +23,28 @@ if ! command -v jq >/dev/null 2>&1; then
     echo "Error: jq is not installed. Please install jq to parse JSON responses."
     exit 1
 fi
+
+
+# ISO 8601 date defaults
+# use gdate to find 1st jan this year if on macOS with coreutils installed
+START=$($DATE_CMD -I -d "$($DATE_CMD +%Y)-01-01")
+END=$($DATE_CMD -I)
+
+# Read the config from a file if it exists
+if [ -f ./config.env ]; then
+    source ./config.env
+else
+    echo "Error: config.env file not found.  Copy config.env.template sideways to config.env and edit"
+    exit 1
+fi
+if [ -z "$ACCOUNT" ] || [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+    echo "Error: USERNAME and PASSWORD must be set in config.env"
+    exit 1
+fi
+
+# Echo out config
+echo "Account & username: $ACCOUNT / $USERNAME"
+echo "Period: $START -> $END"
 
 # Create a cookie jar
 COOKIE_FILE=`mktemp`
@@ -66,7 +79,7 @@ update_access_token
 # Iterate over the days - credit to https://www.theapproachablegeek.co.uk/blog/ovo-energy-data-extractor/
 d=$START
 until [[ $d > $END ]]; do 
-    echo "$d"
+    echo "Fetching data: $d"
     # curl -c $COOKIE_FILE -b $COOKIE_FILE "https://smartpaymapi.ovoenergy.com/usage/api/half-hourly/$ACCOUNT?date=$d" --compressed --output $d.json
     http_response=$(curl -s -S -w "%{response_code}" -H "Authorization: Bearer $ACCESS_TOKEN" "https://smartpaymapi.ovoenergy.com/usage/api/half-hourly/$ACCOUNT?date=$d" --compressed --output $d.json)
     if [ $http_response != "200" ]; then
