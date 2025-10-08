@@ -42,14 +42,23 @@ ACCESS_TOKEN=""
 function update_access_token() {
     echo "Refreshing token"
     ACCESS_TOKEN=`curl -s -S --request GET --url https://my.ovoenergy.com/api/v2/auth/token -c $COOKIE_FILE -b $COOKIE_FILE | jq --raw-output '.accessToken.value'`
+    # Check the exit code was OK
+    if [ $? -ne 0 ] || [ -z "$ACCESS_TOKEN" ]; then
+        echo "Error: Failed to retrieve access token."
+        exit 1
+    fi
 }
 
 
-# Let's get on with it
-
+# Let's get on with it!
 
 # Initial login and save cookies
 curl -s -S -c $COOKIE_FILE -X POST --json "{\"username\": \"$USERNAME\",\"password\": \"$PASSWORD\",\"rememberMe\": true}" 'https://my.ovoenergy.com/api/v2/auth/login' -o /dev/null
+# Check the exit code was OK
+if [ $? -ne 0 ]; then
+    echo "Error: Login failed."
+    exit 1
+fi
 
 # Get initial access token
 update_access_token
