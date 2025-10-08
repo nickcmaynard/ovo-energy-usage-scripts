@@ -25,6 +25,8 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 
+# Defaults
+INTERVAL=1
 # ISO 8601 date defaults
 # use gdate to find 1st jan this year if on macOS with coreutils installed
 START=$($DATE_CMD -I -d "$($DATE_CMD +%Y)-01-01")
@@ -82,13 +84,17 @@ until [[ $d > $END ]]; do
     echo "Fetching data: $d"
     # curl -c $COOKIE_FILE -b $COOKIE_FILE "https://smartpaymapi.ovoenergy.com/usage/api/half-hourly/$ACCOUNT?date=$d" --compressed --output $d.json
     http_response=$(curl -s -S -w "%{response_code}" -H "Authorization: Bearer $ACCESS_TOKEN" "https://smartpaymapi.ovoenergy.com/usage/api/half-hourly/$ACCOUNT?date=$d" --compressed --output $d.json)
-    if [ $http_response != "200" ]; then
+    if [ $http_response == "401" ]; then
         # Refresh token and retry
         update_access_token
+    elif [ $http_response != "200" ]; then
+        echo "Error: Failed to fetch data for $d - HTTP response code $http_response"
+        exit 1
     else
+        # Move to the next day
         d=$($DATE_CMD -I -d "$d + 1 day")
     fi
-#sleep 1
+    sleep $INTERVAL
 done
 
 # Delete the cookie jar
