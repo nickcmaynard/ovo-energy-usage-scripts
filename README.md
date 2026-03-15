@@ -1,5 +1,8 @@
 # OVO usage extraction scripts
 
+> [!WARNING]
+> This may now be broken due to (another) API change from Ovo  PRs are welcome.
+
 This script is intended for once-off extraction of detailed usage data for archival purposes only.  
 
 The OVO APIs are probably not designed for this, but without a better alternative, desperate times call for desperate measures.
